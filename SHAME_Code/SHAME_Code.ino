@@ -14,7 +14,13 @@ Refference : Jakub Mandula 2021
 */
 
 #include <PZEM004Tv30.h>
+#include <WiFi.h>
+#include <PubSubClient.h>
 
+//Definisi WIFI
+#define WIFI_NETWORK "aufarquinsa"
+#define WIFI_PASSWORD "FAR291296"
+#define WIFI_TIMEOUT_MS 20000
 
 #if !defined(PZEM_RX_PIN) && !defined(PZEM_TX_PIN)
 #define PZEM_RX_PIN 16
@@ -36,9 +42,30 @@ PZEM004Tv30 pzem(PZEM_SERIAL, PZEM_RX_PIN, PZEM_TX_PIN);
 PZEM004Tv30 pzem(PZEM_SERIAL);
 #endif
 
+void ConnectToWIFI(){
+  Serial.print("Menghubungkan WIFI");
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_NETWORK, WIFI_PASSWORD);
+
+  unsigned long startAttempTime = millis();
+
+  while(WiFi.status() != WL_CONNECTED && millis()-startAttempTime < WIFI_TIMEOUT_MS){
+    Serial.print(".");
+    delay(100);
+  }
+  if(WiFi.status() != WL_CONNECTED){
+    Serial.println ("Gagal!");
+  }
+  else{
+    Serial.print("Tersambung IP ");
+    Serial.println(WiFi.localIP());
+  }
+}
+
 void setup() {
     // Debugging Serial port
     Serial.begin(115200);
+    ConnectToWIFI();
 
     // Reset Energy Internal Counter
     //pzem.resetEnergy();
