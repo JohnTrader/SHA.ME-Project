@@ -1,5 +1,5 @@
 # SHA.ME-Project
- Smart Home Assistant for Monitoring Energy
+ Smart Home Assistant for Monitoring Energy adalah
  Platform Smart Home yang digunakan untuk monitoring dan efisiensi 
  pemakaian energi suatu rumah
  
