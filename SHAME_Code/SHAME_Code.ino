@@ -22,6 +22,12 @@ Refference : Jakub Mandula 2021
 #define WIFI_PASSWORD "FAR291296"
 #define WIFI_TIMEOUT_MS 20000
 
+const char* mqtt_server = "rmq2.pptik.id";
+const char* mqtt_user = "TMDG2022";
+const char* mqtt_pass = "TMDG2022";
+const char* mqtt_pub_topic = "Sensor";
+
+
 #if !defined(PZEM_RX_PIN) && !defined(PZEM_TX_PIN)
 #define PZEM_RX_PIN 16
 #define PZEM_TX_PIN 17
