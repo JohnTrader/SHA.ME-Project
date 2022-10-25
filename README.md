@@ -4,6 +4,6 @@
  pemakaian energi suatu rumah
  
  Tubes Desain Aplikasi Interaktif 2022
- Kelompok : Kendali-2
- Joni Juliansah
+ Kelompok : Kendali-2, 
+ Joni Juliansah &
  Muhammad Fadlan
