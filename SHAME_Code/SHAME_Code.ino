@@ -48,6 +48,40 @@ PZEM004Tv30 pzem(PZEM_SERIAL, PZEM_RX_PIN, PZEM_TX_PIN);
 PZEM004Tv30 pzem(PZEM_SERIAL);
 #endif
 
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.print("] ");
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println();
+}
+
+void reconnect() {
+  // Loop until we're reconnected
+  //printMACAddress();
+  const char* CL;
+  //CL = MACAddress.c_str();
+  //Serial.println(CL);
+  while (!client.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    if (client.connect(CL, mqtt_user, mqtt_pass)) {
+      Serial.println("connected");
+    } else {Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      ESP.restart();
+      delay(5000);
+
+    }
+  }
+}
+
 void ConnectToWIFI(){
   Serial.print("Menghubungkan WIFI");
   WiFi.mode(WIFI_STA);
@@ -72,7 +106,8 @@ void setup() {
     // Debugging Serial port
     Serial.begin(115200);
     ConnectToWIFI();
-
+    client.setServer(mqtt_server, 1883);
+    client.setCallback(callback);
     // Reset Energy Internal Counter
     //pzem.resetEnergy();
 }
@@ -89,6 +124,11 @@ void loop() {
     float energy = pzem.energy();
     float frequency = pzem.frequency();
     float pf = pzem.pf();
+
+if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
 
     // Cek jika data valid
     if(isnan(voltage)){
