@@ -80,8 +80,6 @@ void setup()
   client.setServer(mqtt_server, 1883);
   //client.setCallback(callback);
 
-  //Ethernet.begin(mac, ip);
-  // Allow the hardware to sort itself out
   delay(1500);
 }
 
