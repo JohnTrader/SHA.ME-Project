@@ -1,6 +1,6 @@
 /*
 SHA.ME : Smart Home Assistant for Monitoring Energy
-=================================================================
+===============================================================================================
 Platform Smart Home yang digunakan untuk monitoring dan efisiensi 
 pemakaian energi suatu rumah
 
@@ -9,8 +9,8 @@ Kelompok : Kendali-2
            Joni Juliansah
            Muhammad Fadlan
 
-Refference : Jakub Mandula 2021
------------------------------------------------------------------
+Refference : Jakub Mandula, Fahmi Nurfadilah, Nurman Hariyanto
+=================================================================================================
 */
 
 #include <PZEM004Tv30.h>
@@ -22,10 +22,16 @@ Refference : Jakub Mandula 2021
 #define WIFI_PASSWORD "FAR291296"
 #define WIFI_TIMEOUT_MS 20000
 
+byte mac[6]; //array temp mac address
+String MACAddress;
+const char* deviceGuid = "d15016e1-9411-4a87-92c0-618e49465bfd";
 const char* mqtt_server = "rmq2.pptik.id";
 const char* mqtt_user = "TMDG2022";
 const char* mqtt_pass = "TMDG2022";
-const char* mqtt_pub_topic = "Sensor";
+const char* mqttQueuePublish = "Log";
+const char* mqttQueueSubscribe    = "Aktuator";
+
+int loop_count = 0 ;
 
 
 #if !defined(PZEM_RX_PIN) && !defined(PZEM_TX_PIN)
@@ -51,28 +57,56 @@ PZEM004Tv30 pzem(PZEM_SERIAL);
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+//============================================================================================
+//Function for Get message payload from MQTT rabbit mq
+
+char sPayload[100];
+char message [40] ;
+char address[40];
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
+  memcpy(sPayload, payload, length);
+  memcpy(address, payload, 36);
+  memcpy(message, &payload[37], length - 37);
+  if (String((char *)address) == String((char *)deviceGuid))
+  {
+    Serial.println("address sama");
   }
-  Serial.println();
-}
+  else
+  {
+    Serial.println("address berbeda");
+    return;
+  }
+  Serial.println(message);
+/*
+  if (message[0] == '1') {
+    digitalWrite(relayControlPin, HIGH);
+    Serial.println("relay 1 on");
+    statusDevice[0] = "1";
+
+  }
+  if (message[0] == '0') {
+    digitalWrite(relayControlPin, LOW);
+    Serial.println("relay 1 off");
+    statusDevice[0] = "0";
+  } */
+} 
+
+//============================================================================================
 
 void reconnect() {
   // Loop until we're reconnected
-  //printMACAddress();
+  printMACAddress();
   const char* CL;
-  //CL = MACAddress.c_str();
-  //Serial.println(CL);
+  CL = MACAddress.c_str();
+  Serial.println(CL);
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
     if (client.connect(CL, mqtt_user, mqtt_pass)) {
       Serial.println("connected");
-    } else {Serial.print("failed, rc=");
+      client.subscribe(mqttQueueSubscribe);
+    } else {
+      Serial.print("failed, rc=");
       Serial.print(client.state());
       Serial.println(" try again in 5 seconds");
       ESP.restart();
@@ -81,6 +115,7 @@ void reconnect() {
     }
   }
 }
+//============================================================================================
 
 void ConnectToWIFI(){
   Serial.print("Menghubungkan WIFI");
@@ -102,6 +137,29 @@ void ConnectToWIFI(){
   }
 }
 
+//============================================================================================
+String mac2String(byte ar[]) {
+  String s;
+  for (byte i = 0; i < 6; ++i)
+  {
+    char buf[3];
+    sprintf(buf, "%2X", ar[i]);
+    s += buf;
+    if (i < 5) s += ':';
+  }
+  return s;
+}
+//============================================================================================
+void printMACAddress() {
+  WiFi.macAddress(mac);
+  MACAddress = mac2String(mac);
+  Serial.println(MACAddress);
+}
+//============================================================================================
+//void watchdogSetup(void) {
+//  ESP.wdtDisable();
+//}
+//============================================================================================
 void setup() {
     // Debugging Serial port
     Serial.begin(115200);
@@ -110,39 +168,43 @@ void setup() {
     client.setCallback(callback);
     // Reset Energy Internal Counter
     //pzem.resetEnergy();
+    delay(1500);
+    //watchdogSetup();
 }
-
+//============================================================================================
 void loop() {
+     
     // Print the custom address of the PZEM
-    Serial.print("Custom Address:");
-    Serial.println(pzem.readAddress(), HEX);
+    //Serial.print("Custom Address:");
+    //Serial.println(pzem.readAddress(), HEX);
 
-    // Read the data from the sensor
-    float voltage = pzem.voltage();
-    float current = pzem.current();
-    float power = pzem.power();
-    float energy = pzem.energy();
-    float frequency = pzem.frequency();
-    float pf = pzem.pf();
-
-if (!client.connected()) {
+// Read the data from the sensor
+float voltage = pzem.voltage();
+float current = pzem.current();
+float power = pzem.power();
+float energy = pzem.energy();
+float frequency = pzem.frequency();
+float pf = pzem.pf();
+String dataSendtoMqtt;
+String convertDeviceGuid = String(deviceGuid);
+for (int i = 0; i <= loop_count; i++) {
+    if (!client.connected()) {
     reconnect();
-  }
-  client.loop();
+    }
 
     // Cek jika data valid
     if(isnan(voltage)){
-        Serial.println("Kesalahan Pembacaan Voltage");
+      Serial.println("Kesalahan Pembacaan Voltage");
     } else if (isnan(current)) {
-        Serial.println("Kesalahan Pembacaan Current");
+      Serial.println("Kesalahan Pembacaan Current");
     } else if (isnan(power)) {
-        Serial.println("Kesalahan Pembacaan Power");
+      Serial.println("Kesalahan Pembacaan Power");
     } else if (isnan(energy)) {
-        Serial.println("Kesalahan Pembacaan Energy");
+      Serial.println("Kesalahan Pembacaan Energy");
     } else if (isnan(frequency)) {
-        Serial.println("Kesalahan Pembacaan Frequency");
+      Serial.println("Kesalahan Pembacaan Frequency");
     } else if (isnan(pf)) {
-        Serial.println("Kesalahan Pembacaan Power Factor");
+      Serial.println("Kesalahan Pembacaan Power Factor");
     } else {
 
         // Print the values to the Serial console
@@ -152,10 +214,18 @@ if (!client.connected()) {
         Serial.print("Energy: ");       Serial.print(energy,3);     Serial.println("kWh");
         Serial.print("Frequency: ");    Serial.print(frequency, 1); Serial.println("Hz");
         Serial.print("PF: ");           Serial.println(pf);
-
-    }
-
-
-    Serial.println();
-    delay(2000);
+      }
+    
+    dataSendtoMqtt = String(convertDeviceGuid + "#" + voltage + "#" + current + "#" + power + "#" + energy + "#" + frequency + "#" + pf);
+    client.publish(mqttQueuePublish, dataSendtoMqtt.c_str());
+    loop_count++;
+    //ESP.wdtFeed();
+    Serial.print(loop_count);
+    Serial.print(". Watchdog fed in approx. ");
+    Serial.print(loop_count * 5000);
+    Serial.println(" milliseconds.");
+    client.loop();
+    delay(5000); 
+  }
 }
+//============================================================================================
