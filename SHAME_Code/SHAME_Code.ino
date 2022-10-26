@@ -18,8 +18,10 @@ Refference : Jakub Mandula, Fahmi Nurfadilah, Nurman Hariyanto
 #include <PubSubClient.h>
 
 //Definisi WIFI
-#define WIFI_NETWORK "aufarquinsa"
-#define WIFI_PASSWORD "FAR291296"
+//#define WIFI_NETWORK "aufarquinsa"
+//#define WIFI_PASSWORD "FAR291296"
+#define WIFI_NETWORK "OPPO A5 2020"
+#define WIFI_PASSWORD "796cad6039d3"
 #define WIFI_TIMEOUT_MS 20000
 
 byte mac[6]; //array temp mac address
