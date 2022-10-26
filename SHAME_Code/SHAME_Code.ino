@@ -92,7 +92,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 } 
 
 //============================================================================================
-
+// Fungsi untuk koneksi dan rekoneksi ke RabbitMQ
 void reconnect() {
   // Loop until we're reconnected
   printMACAddress();
@@ -116,7 +116,7 @@ void reconnect() {
   }
 }
 //============================================================================================
-
+//Koneksi WiFi
 void ConnectToWIFI(){
   Serial.print("Menghubungkan WIFI");
   WiFi.mode(WIFI_STA);
@@ -138,6 +138,7 @@ void ConnectToWIFI(){
 }
 
 //============================================================================================
+//Fungsi macaddress to String
 String mac2String(byte ar[]) {
   String s;
   for (byte i = 0; i < 6; ++i)
@@ -150,6 +151,7 @@ String mac2String(byte ar[]) {
   return s;
 }
 //============================================================================================
+//Print MAC Address
 void printMACAddress() {
   WiFi.macAddress(mac);
   MACAddress = mac2String(mac);
@@ -160,6 +162,7 @@ void printMACAddress() {
 //  ESP.wdtDisable();
 //}
 //============================================================================================
+//Fungsi Setup
 void setup() {
     // Debugging Serial port
     Serial.begin(115200);
@@ -172,6 +175,7 @@ void setup() {
     //watchdogSetup();
 }
 //============================================================================================
+//Main Program
 void loop() {
      
     // Print the custom address of the PZEM
