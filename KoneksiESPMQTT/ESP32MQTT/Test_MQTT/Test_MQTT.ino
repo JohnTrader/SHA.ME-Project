@@ -76,11 +76,11 @@ void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Create a random client ID
-    //String clientId = "ESP8266Client-";
-    //clientId += String(random(0xffff), HEX);
+    String clientId = "ESP8266Client-";
+    clientId += String(random(0xffff), HEX);
     // Attempt to connect
-    //if (client.connect(clientId.c_str())) {
-    if (client.connect("ESP32Client")) {
+    if (client.connect(clientId.c_str())) {
+    //if (client.connect("ESP32Client")) {
       Serial.println("connected");
       // Once connected, publish an announcement...
       client.publish("/topik/mqtt/outTopic", "hello world");
@@ -109,10 +109,10 @@ void loop() {
   if (now - lastMsg > 2000) {
     lastMsg = now;
     ++value;
-    //snprintf (msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
-    snprintf (msg, 75, "hello world #%ld", value);
+    snprintf (msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
+    //snprintf (msg, 75, "hello world #%ld", value);
     Serial.print("Publish message: ");
     Serial.println(msg);
-    client.publish("outTopic", msg);
+    client.publish("/topik/mqtt/outTopic", msg);
   }
 }
