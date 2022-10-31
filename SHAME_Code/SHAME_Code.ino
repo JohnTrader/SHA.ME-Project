@@ -18,10 +18,10 @@ Refference : Jakub Mandula, Fahmi Nurfadilah, Nurman Hariyanto
 #include <PubSubClient.h>
 
 //Definisi WIFI
-//#define WIFI_NETWORK "aufarquinsa"
-//#define WIFI_PASSWORD "FAR291296"
-#define WIFI_NETWORK "OPPO A5 2020"
-#define WIFI_PASSWORD "796cad6039d3"
+#define WIFI_NETWORK "aufarquinsa"
+#define WIFI_PASSWORD "FAR291296"
+//#define WIFI_NETWORK "OPPO A5 2020"
+//#define WIFI_PASSWORD "796cad6039d3"
 #define WIFI_TIMEOUT_MS 20000
 
 byte mac[6]; //array temp mac address
@@ -30,7 +30,7 @@ const char* deviceGuid = "d15016e1-9411-4a87-92c0-618e49465bfd";
 const char* mqtt_server = "rmq2.pptik.id";
 const char* mqtt_user = "TMDG2022";
 const char* mqtt_pass = "TMDG2022";
-const char* mqttQueuePublish = "Log";
+const char* mqttQueuePublish = "Sensor_PZEM004T";
 const char* mqttQueueSubscribe    = "Aktuator";
 
 int loop_count = 0 ;
@@ -58,6 +58,10 @@ PZEM004Tv30 pzem(PZEM_SERIAL);
 
 WiFiClient espClient;
 PubSubClient client(espClient);
+unsigned long lastMsg = 0;
+#define MSG_BUFFER_SIZE	(50)
+char msg[MSG_BUFFER_SIZE];
+int value = 0;
 
 //============================================================================================
 //Function for Get message payload from MQTT rabbit mq
@@ -211,7 +215,7 @@ for (int i = 0; i <= loop_count; i++) {
       Serial.println("Kesalahan Pembacaan Frequency");
     } else if (isnan(pf)) {
       Serial.println("Kesalahan Pembacaan Power Factor");
-    } else {
+    } /*else {
 
         // Print the values to the Serial console
         Serial.print("Voltage: ");      Serial.print(voltage);      Serial.println("V");
@@ -220,16 +224,26 @@ for (int i = 0; i <= loop_count; i++) {
         Serial.print("Energy: ");       Serial.print(energy,3);     Serial.println("kWh");
         Serial.print("Frequency: ");    Serial.print(frequency, 1); Serial.println("Hz");
         Serial.print("PF: ");           Serial.println(pf);
-      }
+      } */
     
-    dataSendtoMqtt = String(convertDeviceGuid + "#" + voltage + "#" + current + "#" + power + "#" + energy + "#" + frequency + "#" + pf);
+    dataSendtoMqtt = String(convertDeviceGuid + " #Voltage : " + voltage + "#Current : " + current + "#Power : " + power + "#Energy : " + energy + "#Frequency : " + frequency + "#Power Factor : " + pf);
     client.publish(mqttQueuePublish, dataSendtoMqtt.c_str());
-    loop_count++;
+    //loop_count++;
     //ESP.wdtFeed();
-    Serial.print(loop_count);
-    Serial.print(". Watchdog fed in approx. ");
-    Serial.print(loop_count * 5000);
-    Serial.println(" milliseconds.");
+    //Serial.print(loop_count);
+    //Serial.print(". Watchdog fed in approx. ");
+    //Serial.print(loop_count * 5000);
+    //Serial.println(" milliseconds.");
+  unsigned long now = millis();
+  if (now - lastMsg > 2000) {
+    lastMsg = now;
+    ++value;
+    snprintf (msg, MSG_BUFFER_SIZE, "Hasil Pengukuran Ke #%ld", value);
+    //snprintf (msg, 75, "Hasil Pengukuran Ke #%ld", value);
+    Serial.print("Publish message: ");
+    Serial.println(msg);
+    client.publish("Sensor_PZEM004T", msg);
+  }
     client.loop();
     delay(5000); 
   }
