@@ -119,8 +119,9 @@ void reconnect() {
       Serial.println("connected");
       // Once connected, publish an announcement...
       client.publish("/topik/mqtt/outTopic", "SHA.ME");
+      //client.publish("Sensor_PZEM004T", "SHA.ME");
       // ... and resubscribe
-      client.subscribe("/topik/mqtt/inTopic");
+      //client.subscribe("/topik/mqtt/inTopic");
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
